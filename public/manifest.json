@@ -1,0 +1,16 @@
+{
+  "name": "SmartGuard — Plant Monitoring Dashboard",
+  "short_name": "SmartGuard",
+  "description": "Real-time IoT plant health monitoring and smart irrigation control panel.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F8F4EE",
+  "theme_color": "#845F40",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

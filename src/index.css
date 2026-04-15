@@ -1,0 +1,99 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --bg-color: #F8F4EE;
+  --text-primary: #4A3B2C;
+  --text-secondary: #8C7B6B;
+  
+  --card-bg-light: rgba(255, 255, 255, 0.65);
+  --card-bg-dark: rgba(255, 255, 255, 0.4);
+  --card-bg-white: #FFFFFF;
+  --card-bg-brown-dark: #845F40;
+  --card-bg-brown-light: #C09A72;
+  --card-bg-mustard: #E2AD60;
+  
+  --shadow-soft: 0 10px 40px 0 rgba(140, 106, 72, 0.08);
+  --shadow-inner: inset 0 2px 4px 0 rgba(255, 255, 255, 0.5);
+  --shadow-card: 0 4px 15px 0 rgba(0, 0, 0, 0.05);
+
+  --border-radius-xl: 32px;
+  --border-radius-lg: 24px;
+  --border-radius-md: 16px;
+  --border-radius-sm: 8px;
+  
+  --glass-border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  min-height: 100vh;
+  /* Add a subtle aesthetic shadow/gradient overlay to mimic the image's lighting */
+  background-image: radial-gradient(circle at top left, rgba(255,255,255,0.9) 0%, transparent 70%);
+  overflow-x: hidden;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+}
+
+.glass-panel {
+  background: var(--card-bg-light);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: var(--glass-border);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-soft), var(--shadow-inner);
+}
+
+/* Typography Base */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+p {
+  color: var(--text-secondary);
+}
+
+/* Animations & utilities */
+.animate-fade-in {
+  animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.hover-lift {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 15px 45px 0 rgba(140, 106, 72, 0.12);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #D5C7B8;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--card-bg-brown-light);
+}
