@@ -35,24 +35,21 @@ export const FirebaseProvider = ({ children }) => {
   useEffect(() => {
     const plantRef = ref(db, 'plant');
     const controlRef = ref(db, 'control');
+    let isFirstLoad = true;
 
     const unsubscribePlant = onValue(plantRef, (snapshot) => {
       if (snapshot.exists()) {
         setSensorData(prev => {
           const newData = snapshot.val();
-          // Check if data actually changed (ESP sent new reading)
           const hasChanged = JSON.stringify(prev) !== JSON.stringify(newData);
-          if (hasChanged) {
+          if (hasChanged && !isFirstLoad) {
+            // Data changed AFTER first load → ESP just sent fresh data
             setLastUpdate(Date.now());
             setStatus('online');
           }
+          isFirstLoad = false;
           return newData;
         });
-        // First load — set online and timestamp
-        if (!lastUpdate) {
-          setLastUpdate(Date.now());
-          setStatus('online');
-        }
       }
     }, (error) => {
       console.error(error);
@@ -85,6 +82,8 @@ export const FirebaseProvider = ({ children }) => {
   // ── Historical data from /sensor_log ──
   // Pull up to 2016 entries (~7 days at 5-min intervals)
   useEffect(() => {
+    let initialCheckDone = false;
+
     const logQuery = query(
       ref(db, 'sensor_log'),
       orderByKey(),
@@ -98,6 +97,22 @@ export const FirebaseProvider = ({ children }) => {
           .filter(e => e && e.timestamp)
           .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
         setSensorHistory(entries);
+
+        // On first load, check the latest entry's timestamp to determine initial status
+        if (!initialCheckDone && entries.length > 0) {
+          initialCheckDone = true;
+          const lastEntry = entries[entries.length - 1];
+          const lastTime = new Date(lastEntry.timestamp).getTime();
+          const age = Date.now() - lastTime;
+
+          if (age <= OFFLINE_TIMEOUT) {
+            setLastUpdate(lastTime);
+            setStatus('online');
+          } else {
+            setLastUpdate(lastTime);
+            setStatus('offline');
+          }
+        }
       }
     }, (error) => {
       console.error('sensor_log error:', error);
