@@ -44,9 +44,9 @@ export const SENSOR_CONFIG = {
   gas: {
     label: 'Air Quality',
     unit: 'kΩ',
-    optimal: { min: 0, max: 50 },
-    warning: { min: 0, max: 100 },
-    critical: { min: 0, max: 150 },
+    optimal: { min: 80, max: 500 },
+    warning: { min: 30, max: 600 },
+    critical: { min: 10, max: 800 },
     weight: 0.15,
     icon: 'leaf',
   },
