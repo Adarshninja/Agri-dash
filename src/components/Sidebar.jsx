@@ -37,8 +37,11 @@ const Sidebar = () => {
       
       <div className="sidebar-footer">
         <div className="system-status">
-          <div className={`status-dot ${status === 'online' ? 'online' : status === 'error' ? 'error' : 'connecting'}`} style={{ backgroundColor: status === 'online' ? '#22c55e' : status === 'error' ? '#ef4444' : '#eab308', boxShadow: `0 0 10px ${status === 'online' ? 'rgba(34, 197, 94, 0.5)' : status === 'error' ? 'rgba(239, 68, 68, 0.5)' : 'rgba(234, 179, 8, 0.5)'}` }}></div>
-          <span>{status === 'online' ? 'System Online' : status === 'error' ? 'System Error' : 'Connecting...'}</span>
+          <div className={`status-dot ${status}`} style={{ 
+            backgroundColor: status === 'online' ? '#22c55e' : status === 'offline' ? '#ef4444' : status === 'error' ? '#ef4444' : '#eab308', 
+            boxShadow: `0 0 10px ${status === 'online' ? 'rgba(34, 197, 94, 0.5)' : status === 'offline' ? 'rgba(239, 68, 68, 0.5)' : status === 'error' ? 'rgba(239, 68, 68, 0.5)' : 'rgba(234, 179, 8, 0.5)'}` 
+          }}></div>
+          <span>{status === 'online' ? 'System Online' : status === 'offline' ? 'System Offline' : status === 'error' ? 'System Error' : 'Connecting...'}</span>
         </div>
       </div>
     </aside>

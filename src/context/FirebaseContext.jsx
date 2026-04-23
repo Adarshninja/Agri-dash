@@ -25,6 +25,11 @@ export const FirebaseProvider = ({ children }) => {
 
   const [sensorHistory, setSensorHistory] = useState([]);
   const [status, setStatus] = useState('connecting');
+  const [lastUpdate, setLastUpdate] = useState(null);
+
+  // ── Offline timeout (ms) — if no new data for 7 minutes, mark offline ──
+  // ESP sends data every 5 min, so 7 min gives buffer for network delays
+  const OFFLINE_TIMEOUT = 7 * 60 * 1000;
 
   // ── Live sensor data from /plant ──
   useEffect(() => {
@@ -33,8 +38,21 @@ export const FirebaseProvider = ({ children }) => {
 
     const unsubscribePlant = onValue(plantRef, (snapshot) => {
       if (snapshot.exists()) {
-        setSensorData(snapshot.val());
-        setStatus('online');
+        setSensorData(prev => {
+          const newData = snapshot.val();
+          // Check if data actually changed (ESP sent new reading)
+          const hasChanged = JSON.stringify(prev) !== JSON.stringify(newData);
+          if (hasChanged) {
+            setLastUpdate(Date.now());
+            setStatus('online');
+          }
+          return newData;
+        });
+        // First load — set online and timestamp
+        if (!lastUpdate) {
+          setLastUpdate(Date.now());
+          setStatus('online');
+        }
       }
     }, (error) => {
       console.error(error);
@@ -52,6 +70,17 @@ export const FirebaseProvider = ({ children }) => {
       unsubscribeControl();
     };
   }, []);
+
+  // ── Heartbeat: check if ESP is still sending data ──
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (lastUpdate && Date.now() - lastUpdate > OFFLINE_TIMEOUT) {
+        setStatus('offline');
+      }
+    }, 30000); // Check every 30 seconds
+
+    return () => clearInterval(interval);
+  }, [lastUpdate]);
 
   // ── Historical data from /sensor_log ──
   // Pull up to 2016 entries (~7 days at 5-min intervals)
