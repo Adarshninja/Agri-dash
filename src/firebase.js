@@ -1,5 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getDatabase } from "firebase/database";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -13,3 +14,21 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const db = getDatabase(app);
+export const auth = getAuth(app);
+
+// Sign in anonymously so RTDB rules (auth != null) are satisfied
+export const authReady = new Promise((resolve, reject) => {
+  signInAnonymously(auth)
+    .then(() => {
+      console.log("Firebase: anonymous sign-in OK");
+    })
+    .catch((err) => {
+      console.error("Firebase: anonymous sign-in failed:", err);
+      reject(err);
+    });
+
+  // Resolve when auth state is confirmed
+  onAuthStateChanged(auth, (user) => {
+    if (user) resolve(user);
+  });
+});

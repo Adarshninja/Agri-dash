@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useMemo } from 'react';
 import { ref, onValue, set, query, orderByKey, limitToLast } from 'firebase/database';
-import { db } from '../firebase';
+import { db, authReady } from '../firebase';
 import { checkThresholds } from '../utils/plantHealth';
 
 // Must match DEVICE_ID in the ESP sender code
@@ -29,13 +29,21 @@ export const FirebaseProvider = ({ children }) => {
   const [sensorHistory, setSensorHistory] = useState([]);
   const [status, setStatus] = useState('connecting');
   const [lastUpdate, setLastUpdate] = useState(null);
+  const [authLoaded, setAuthLoaded] = useState(false);
 
   // ── Offline timeout (ms) — if no new data for 7 minutes, mark offline ──
   // ESP sends data every 5 min, so 7 min gives buffer for network delays
   const OFFLINE_TIMEOUT = 7 * 60 * 1000;
 
+  // ── Wait for anonymous auth before subscribing to database ──
+  useEffect(() => {
+    authReady.then(() => setAuthLoaded(true)).catch(() => setStatus('error'));
+  }, []);
+
   // ── Live sensor data from /devices/{DEVICE_ID}/plant ──
   useEffect(() => {
+    if (!authLoaded) return;
+
     const plantRef = ref(db, `devices/${DEVICE_ID}/plant`);
     const controlRef = ref(db, `devices/${DEVICE_ID}/control`);
     let isFirstLoad = true;
@@ -69,7 +77,7 @@ export const FirebaseProvider = ({ children }) => {
       unsubscribePlant();
       unsubscribeControl();
     };
-  }, []);
+  }, [authLoaded]);
 
   // ── Heartbeat: check if ESP is still sending data ──
   useEffect(() => {
@@ -85,6 +93,8 @@ export const FirebaseProvider = ({ children }) => {
   // ── Historical data from /devices/{DEVICE_ID}/sensor_log ──
   // Pull up to 2016 entries (~7 days at 5-min intervals)
   useEffect(() => {
+    if (!authLoaded) return;
+
     let initialCheckDone = false;
 
     const logQuery = query(
@@ -122,7 +132,7 @@ export const FirebaseProvider = ({ children }) => {
     });
 
     return () => unsubscribeLog();
-  }, []);
+  }, [authLoaded]);
 
   // ── Generate alerts from historical data ──
   const alerts = useMemo(() => {
