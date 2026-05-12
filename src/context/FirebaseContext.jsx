@@ -3,6 +3,9 @@ import { ref, onValue, set, query, orderByKey, limitToLast } from 'firebase/data
 import { db } from '../firebase';
 import { checkThresholds } from '../utils/plantHealth';
 
+// Must match DEVICE_ID in the ESP sender code
+const DEVICE_ID = 'plant_guardian_01';
+
 const FirebaseContext = createContext();
 
 export const useFirebase = () => useContext(FirebaseContext);
@@ -31,10 +34,10 @@ export const FirebaseProvider = ({ children }) => {
   // ESP sends data every 5 min, so 7 min gives buffer for network delays
   const OFFLINE_TIMEOUT = 7 * 60 * 1000;
 
-  // ── Live sensor data from /plant ──
+  // ── Live sensor data from /devices/{DEVICE_ID}/plant ──
   useEffect(() => {
-    const plantRef = ref(db, 'plant');
-    const controlRef = ref(db, 'control');
+    const plantRef = ref(db, `devices/${DEVICE_ID}/plant`);
+    const controlRef = ref(db, `devices/${DEVICE_ID}/control`);
     let isFirstLoad = true;
 
     const unsubscribePlant = onValue(plantRef, (snapshot) => {
@@ -79,13 +82,13 @@ export const FirebaseProvider = ({ children }) => {
     return () => clearInterval(interval);
   }, [lastUpdate]);
 
-  // ── Historical data from /sensor_log ──
+  // ── Historical data from /devices/{DEVICE_ID}/sensor_log ──
   // Pull up to 2016 entries (~7 days at 5-min intervals)
   useEffect(() => {
     let initialCheckDone = false;
 
     const logQuery = query(
-      ref(db, 'sensor_log'),
+      ref(db, `devices/${DEVICE_ID}/sensor_log`),
       orderByKey(),
       limitToLast(2016)
     );
@@ -144,7 +147,7 @@ export const FirebaseProvider = ({ children }) => {
 
   const updateControl = async (updates) => {
     try {
-      await set(ref(db, 'control'), { ...controlData, ...updates });
+      await set(ref(db, `devices/${DEVICE_ID}/control`), { ...controlData, ...updates });
     } catch (e) {
       console.error("Failed to update control node:", e);
     }
